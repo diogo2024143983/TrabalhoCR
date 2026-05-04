@@ -41,6 +41,7 @@ for i=1:length(colNum)
     nomeCol= colNum{i};
     if any(isnan(dados.(nomeCol)))
         dados.(nomeCol)(isnan(dados.(nomeCol))) = median(dados.(nomeCol), "omitnan");
+        
     end
 end
 

@@ -127,11 +127,22 @@ for i=1:height(dadosTeste)
     erroAbsoluto= abs(tempPrevista-tempReal);
     erros(i)= erroAbsoluto;
 
-disp("Caso n " + num2str(i) + " | Previsto: " + num2str(tempPrevista) + " | Real: " + num2str(tempReal) + " | Erro: " + num2str(erroAbsoluto));    
+disp("Caso n " + num2str(i) + " | Previsto: " + num2str(tempPrevista) + " | Real: " + num2str(tempReal) + " | Erro: " + num2str(erroAbsoluto));  
+
+altera= input("Quer alterar a temperatura real para a da do valor previsto? (s/n)", 's');
+
+if altera=="s"
+    dadosTeste.temperature(i)=tempPrevista;
+    disp("temperatura alterada");
+    disp("-> Temperatura atualizada de " + num2str(tempReal) + " para " + num2str(dadosTeste.temperature(i)));
+else
+    disp("temperatura mantida");
+
+end
+disp("-<-<-<-<-<>->->->-")
 end
 
 erroMedio= mean(erros);
-
 disp("<<<<<<<<<<<<<<  Erro médio: " + num2str(erroMedio)+" >>>>>>>>>>>>>>>>>>>");
 
 
