@@ -1,7 +1,5 @@
-
 clear; 
 clc;
-
 
 disp("Raciocinio baseado em casos");
 
@@ -12,10 +10,8 @@ dadosTeste=readtable('dataset_TP_test.csv');
 disp ("Sucesso a carregar os dados de teste");
 
 %preparar os dados do teste
-
 dadosTeste.maintenance_level=cellstr(dadosTeste.maintenance_level);
 dadosTeste.maintenance_level=double(categorical(dadosTeste.maintenance_level, {'Low', 'Medium', 'High'}, 'Ordinal', true));
-
 
 dadosTeste.operating_mode = string(dadosTeste.operating_mode);
 matrizModoTeste = double(dadosTeste.operating_mode == cateModo');
@@ -27,14 +23,13 @@ dadosTeste.sensor_status = string(dadosTeste.sensor_status);
 matrizSensorTeste = double(dadosTeste.sensor_status == cateSensor');
 
 
-
-
 dadosTeste = [dadosTeste, array2table(matrizModoTeste), array2table(matrizArreTeste), array2table(matrizSensorTeste)];
 dadosTeste.operating_mode = [];
 dadosTeste.cooling_type = [];
 dadosTeste.sensor_status = [];
 
-
+% guardar as respostas certas para calcular a % de acerto da classificacao
+classesReais = dadosTeste.class_cat;
 
 inputsTeste=dadosTeste;
 inputsTeste.class_cat=[];
@@ -42,14 +37,61 @@ matrizTesteEntradas=table2array(inputsTeste);
 
 matNormTeste=(matrizTesteEntradas-minVal)./range_val;
 
+% matrizes nao normalizadas para a comparacao
+dadosInputs = dados;
+dadosInputs.class_cat = [];
+matrizNaoNorm = table2array(dadosInputs);
+
 disp("dados do teste preparadoscom sucesso");
 
-%----------------------------------------------
+
+% Testar a classificação 
+
+disp("");
+disp("<<<<<<<<<<<<<< Testes de classificacao >>>>>>>>>>>>>>>");
+
+pesos_iguais = ones(1, size(matriz_norm, 2));
+
+pesos_sensores = ones(1, size(matriz_norm, 2));
+pesos_sensores(2:4) = 5; % dar mais peso a vibration, rotation e voltage
+
+configs = {
+    'Normalizado + Pesos Iguais', matriz_norm, matNormTeste, pesos_iguais;
+    'Normalizado + Pesos Sensores (2,3,4)', matriz_norm, matNormTeste, pesos_sensores;
+    'Nao Normalizado + Pesos Iguais', matrizNaoNorm, matrizTesteEntradas, pesos_iguais
+};
+
+for c = 1:size(configs, 1)
+    nomeConf = configs{c, 1};
+    base = configs{c, 2};
+    testes = configs{c, 3};
+    pesos_atuais = configs{c, 4};
+    
+    previsoes = cell(height(dadosTeste), 1);
+    
+    for i = 1:height(dadosTeste)
+        novo = testes(i, :);
+        
+        difs = abs(base - novo);
+        dists = sum(difs .* pesos_atuais, 2);
+        
+        [~, idxMenor] = min(dists);
+        previsoes{i} = dados.class_cat{idxMenor};
+    end
+    
+    acertos = sum(strcmp(previsoes, classesReais));
+    taxa = (acertos / height(dadosTeste)) * 100;
+    
+    disp("-> " + nomeConf + " | Taxa de acerto: " + num2str(taxa) + "%");
+end
+disp("----------------------------------------------");
+disp("");
+
+
 
 %parte dos 4 R
 
 %retrive
-
 
 Lsemelhanca= 0.85;
 
@@ -157,6 +199,7 @@ for i=1:height(dadosTeste)
         casosRetidos = casosRetidos + 1;
         
         novoCasoDados = dadosTeste(i, :);
+        novoCasoDados.Properties.VariableNames = dados.Properties.VariableNames;
         dados = [dados; novoCasoDados];
         matriz_norm = [matriz_norm; matNormTeste(i, :)];
     end
