@@ -55,7 +55,7 @@ for i = 1:12
     
     acc_global = zeros(1, 10);
     acc_teste = zeros(1, 10);
-    melhor_rep_acc = 0; % ajuda a guardar a melhor das 10 repeticoes
+    melhor_rep_acc = 0; 
     
     for rep = 1:10
         [net_treinada, tr] = train(net_atual, inputs, targets);
@@ -83,7 +83,6 @@ end
 
 disp("---------------------------------");
 
-% em vez de usar os if como tinhas, usamos sort para ordenar logo as 12
 [~, idx_ordem] = sort(resultados(:,1), 'descend');
 top3_idx = idx_ordem(1:3);
 piores3_idx = idx_ordem(end-2:end);
